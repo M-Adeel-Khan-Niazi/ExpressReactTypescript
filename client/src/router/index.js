@@ -1,6 +1,7 @@
 import { lazy, Suspense } from "react";
 import { Route, Routes } from "react-router-dom";
 import Spinner from "../components/spinner";
+
 const routesArray = [
   { id: "1", path: "/", component: lazy(() => import("../views/home")) },
   {

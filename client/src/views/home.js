@@ -4,14 +4,19 @@ import { Card } from "antd";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import socketIO from "socket.io-client";
 const { Meta } = Card;
 const { Header, Content } = Layout;
 
 const Home = () => {
   const [posts, setPosts] = useState([]);
   const navigate = useNavigate();
+  const socket = socketIO.connect("http://localhost:3001");
 
   useEffect(() => {
+    socket.on("message", (data) => {
+      console.log(data, "message");
+    });
     const user = localStorage.getItem("user");
     if (!user) navigate("/log-in");
     getPosts();
@@ -26,16 +31,20 @@ const Home = () => {
         },
       })
       .then(async (res) => {
-        const data = [];
         await res?.data?.data.map(async (item) => {
           const postImg = await fetchImage(item.image);
           item.postImg = postImg;
-          data.push(item);
         });
-        console.log(data, " Data");
-        setPosts(res?.data?.data);
+        setTimeout(() => {
+          setPosts(res?.data?.data);
+        }, 1000);
       })
-      .catch((err) => {});
+      .catch((err) => {
+        if (err.response.status === 401) {
+          localStorage.clear();
+          navigate("/log-in");
+        }
+      });
   };
 
   const fetchImage = async (fileName) => {
@@ -64,7 +73,7 @@ const Home = () => {
             </Col>
           </Row>
         </Header>
-        <Content className="container bg-white">
+        <Content className="container">
           <Row gutter={16} className="px-3">
             {posts?.map((post, index) => {
               return (
